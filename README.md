@@ -1,1 +1,1 @@
-# supervised_unsupervised_ML_models_for_jet_quenching
+# Study of jet modification in relativistic heavy-ion collisions with machine learning techniques
