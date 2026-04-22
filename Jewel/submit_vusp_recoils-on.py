@@ -1,6 +1,6 @@
 #----------------------------------------------
 #
-# artigo de referência das simulações: Jet substructure observables for jet quenching in Quark Gluon Plasma: a Machine Learning driven analysis - https://arxiv.org/abs/2304.07196
+# inspiration: Jet substructure observables for jet quenching in Quark Gluon Plasma: a Machine Learning driven analysis - https://arxiv.org/abs/2304.07196
 #
 #----------------------------------------------
 
@@ -13,7 +13,7 @@ import sys
 import time
 
 #----------------------------------------------#
-#                  FUNÇÕES                     #
+#                  FUNCTIONS                   #
 #----------------------------------------------#
 
 def safe_remove(path, retries=5, delay=1):
@@ -48,7 +48,7 @@ def create_file_from_template(template_path, output_path, replacements):
 def create_file(filepath, content):
     with open(filepath, 'w') as f:
         f.write(content.strip())
-    os.chmod(filepath, 0o644)  # Permissão padrão: leitura e escrita para o dono
+    os.chmod(filepath, 0o644)  
     print(f"File {filepath} successfully created with default permissions (644).")
 
 #----------------------------------------------
@@ -65,68 +65,7 @@ def execute_command(command):
         print("Error:", e.stderr)
         return e.stderr, e.stdout
 
-#----------------------------------------------
-#----------------------------------------------
-
-"""
-
-def convert_hepmc_to_pu14(hepmc_file, sim_type):
-    base_dir = os.getcwd()
-
-    root_file = os.path.join(base_dir, os.path.basename(hepmc_file.replace(".hepmc", "vUSP.root")))
-    pu14_file = os.path.join(base_dir, os.path.basename(hepmc_file.replace(".hepmc", "vUSP.pu14")))
-
-    # Convert HEPMC to ROOT
-    if os.path.exists(hepmc_file):
-        root_command = f"./hepmc_to_root {hepmc_file} {root_file}"
-        execute_command(root_command)
-        if not os.path.exists(root_file):
-            raise FileNotFoundError(f"ROOT file {root_file} was not created.")
-        safe_remove(hepmc_file)  # Delete HEPMC after successful ROOT creation
-        print(f"File {hepmc_file} deleted after conversion to ROOT.")
-    else:
-        raise FileNotFoundError(f"HEPMC file {hepmc_file} does not exist.")
-
-    # Convert ROOT to PU14
-    root_to_pu14_command = f"./root_to_pu14 {root_file} {pu14_file}"
-    execute_command(root_to_pu14_command)
-    if not os.path.exists(pu14_file):
-        raise FileNotFoundError(f"PU14 file {pu14_file} was not created.")
-    safe_remove(root_file)  # Delete ROOT after successful PU14 creation
-    print(f"File {root_file} deleted after conversion to PU14.")
-
-    return pu14_file
-
-#----------------------------------------------
-
-def analyze_pu14(pu14_file, experiment_num, background):
-    # Definir o nome do arquivo de saída como ROOT
-    output_root = pu14_file.replace(".pu14", "_structure_vUSP.root")
-    analysis_script = "/sampa/llimadas/Jewel2.4/analysis/doStructure.py"
-
-    if (background == "nobkg"):
-        analysis_command = f"python {analysis_script} -i {pu14_file} -o {output_root} -n 10000"
-    elif (background == "bkg"):
-        background_file = f"/sampa/llimadas/Jewel2.4/analysis/thermalEvent/results/ThermalEventsMult7000PtAv1.20_{experiment_num}.pu14"
-        analysis_command = f"python {analysis_script} -i {pu14_file} -b{background_file} -o {output_root} -n 10000"
-        
-    execute_command(analysis_command)
-    if not os.path.exists(output_root):
-        raise FileNotFoundError(f"Output ROOT file {output_root} was not created.")
-    os.chmod(output_root, 0o644)
-
-    # Excluir o arquivo .pu14 após a conversão
-    if os.path.exists(pu14_file):
-        safe_remove(pu14_file)
-        print(f"File {pu14_file} deleted after analysis.")
-
-    print(f"Analysis completed for {pu14_file}. Output ROOT file generated at {output_root}.")
-    return output_root
-
-"""
-
-#----------------------------------------------
-#----------------------------------------------
+#----------------------------------------------#
 
 def analyze_hepmc(hepmc_file, experiment_num, jet_type, background, MLtype, average):
     analysis_script = "/sampa/llimadas/Jewel2.4/analysis/doStructure"
@@ -145,22 +84,21 @@ def analyze_hepmc(hepmc_file, experiment_num, jet_type, background, MLtype, aver
     elif average == "on":
         output_root_name = f"{base_name}_avgmedium_{MLtype}_structure"
         
-    output_root_path = os.path.join(os.getcwd(), output_root_name + f"_full_{background_flag}.root") # doStructure adiciona estes nomes
+    output_root_path = os.path.join(os.getcwd(), output_root_name + f"_full_{background_flag}.root") 
 
     # 
     analysis_command = f"{analysis_script} --{jet_type} --{background_flag} {hepmc_file} {output_root_name}"
     execute_command(analysis_command)
 
-    # confere se o arquivo foi criado
     if not os.path.exists(output_root_path):
-        raise FileNotFoundError(f"Arquivo ROOT {output_root_path} não foi criado.")
+        raise FileNotFoundError(f"File ROOT {output_root_path} not found.")
 
-    # muda pro destino final
+
     final_path = "/sampa/llimadas/Jewel2.4/analysis/results_root/"
     move_command = f"mv {output_root_path} {final_path} "
     execute_command(move_command)
 
-    print(f"Análise finalizada.")
+    print(f"Done.")
     return
 
 
@@ -168,7 +106,6 @@ def analyze_hepmc(hepmc_file, experiment_num, jet_type, background, MLtype, aver
 #----------------------------------------------
 
 def append_line(file_path, line):
-    """Acrescenta uma linha ao final do arquivo especificado."""
     with open(file_path, "a") as f:
         f.write(line + "\n")
 
@@ -186,7 +123,7 @@ def run_simulation(experiment_num, nevent, background, MLtype, average):
     NJOB = experiment_num
     njob_data = lambda x: x//10 if x<=99 else x//100
     if average == "on":
-        NJOB_MODIFIED = njob_data(NJOB)  # os arquivos pro meio médio vao de 0 a 9 -> aqui eu pego o numero inteiro dos q vao de 0 a 999
+        NJOB_MODIFIED = njob_data(NJOB)  
     elif average == "off":
         NJOB_MODIFIED = NJOB
     
@@ -207,7 +144,7 @@ def run_simulation(experiment_num, nevent, background, MLtype, average):
     PAR_FILE = os.path.join(TEMP_DIR, f"params_medium-{CODE}_{NJOB}.dat")
     PAR_MED_FILE = os.path.join(TEMP_DIR, f"medium-{CODE}_{NJOB}.dat")
 
-    # Gera os arquivos de parametros a partir dos templates
+
     create_file_from_template(
         "/sampa/llimadas/general_parameters/par_medium_vUSPhydro_article-marco.dat",
         PAR_FILE,
@@ -221,16 +158,16 @@ def run_simulation(experiment_num, nevent, background, MLtype, average):
         }
     )
 
-    # Copia o arquivo base do meio e adiciona o MEDFILE (q é específico meio a meio)
+
     BASE_MED_DIR = "/sampa/llimadas/general_parameters/"
-    BASE_MED_FILE = os.path.join(BASE_MED_DIR, "medium-params_vUSPhydro_article-marco.dat")  # meus parametros (seguindo artigo do Marco)
+    BASE_MED_FILE = os.path.join(BASE_MED_DIR, "medium-params_vUSPhydro_article-marco.dat")  
     if os.path.isfile(BASE_MED_FILE):
-        shutil.copy(BASE_MED_FILE, PAR_MED_FILE)  # copia aquele .dat para a minha saída no arquive
+        shutil.copy(BASE_MED_FILE, PAR_MED_FILE)  
     else:
         print(f"Erro: arquivo medium-params_vUSPhydro_article-marco.dat não encontrado em {os.path.join(BASE_MED_DIR, CENT)}")
         sys.exit(1)
 
-    append_line(PAR_MED_FILE, f"MEDFILE {os.path.join(MED_DIR, f'{NJOB_MODIFIED}.dat')}")  # pega o arquivo dentro do dir. do Leo e junta com o meu
+    append_line(PAR_MED_FILE, f"MEDFILE {os.path.join(MED_DIR, f'{NJOB_MODIFIED}.dat')}") 
 
     jewel_executable = os.path.join(jewel_dir, "usp-jewel")
     if not os.path.isfile(jewel_executable) or not os.access(jewel_executable, os.X_OK):
@@ -244,13 +181,11 @@ def run_simulation(experiment_num, nevent, background, MLtype, average):
 
         
 
-    # Verifica se o arquivo HEPMC foi criado
+
     if not os.path.exists(hepmc_file):
         raise FileNotFoundError(f"HEPMC file {hepmc_file} was not created. Check JEWEL execution.")
 
-    #pu14_file = convert_hepmc_to_pu14(hepmc_file, sim_type="medium")
-    #output_root = analyze_pu14(pu14_file, experiment_num, background)
-    analyze_hepmc(hepmc_file, experiment_num, 'fulljets', background, MLtype, average)   # passando avergae flag pro analyze pq fica mais fácil mudar o nome lá
+    analyze_hepmc(hepmc_file, experiment_num, 'fulljets', background, MLtype, average)  
     return
 
 
@@ -266,7 +201,7 @@ if __name__ == "__main__":
     parser.add_argument("--experiment_num", type=int, required=True, help="Experiment number")
     parser.add_argument("--nevent", type=int, required=True, help="Number of events")
     parser.add_argument("--background", type=str, required=True, choices=["nobkg", "bkg"], help="Background off/on")
-    parser.add_argument("--MLtype", type=str, required=True, choices=["train", "test", "val"], help="Purpose type of data that will be generated")
+    parser.add_argument("--MLtype", type=str, required=True, choices=["train", "test", "val"])
     parser.add_argument("--average_medium", type=str, required=False, choices=["off", "on"], default="off", help="Average medium off/on")
     args = parser.parse_args()
 
